@@ -11,6 +11,42 @@ wb = app.books.open(f"E:\\ps\\pandas_sample\\1.xlsx")
 
 # 读取原始数据
 sheet = wb.sheets['Sheet1']
+def sheet1Sum(name):
+    sheet = wb.sheets['Sheet1']
+    findRow = None
+    for row in sheet.range("A2").expand('down'):
+        if row.value == name:
+            findRow = row
+            break
+    numbers = findRow.offset(0,1).expand("right")[:3].value
+    sumResult = sum(map(lambda x: x, numbers))
+    return sumResult
+   
+def sumAll():
+    sheet = wb.sheets['Sheet2']
+    for row in sheet.range('A2').expand('down'):
+        sheet.range(f"B{row.row}").value = sheet1Sum(row.value)
+
+def shee1MatchNameScore(name,score):
+    sheet = wb.sheets['Sheet1']
+    column = None
+    row = None
+    for c in sheet.range("A1").expand('down'):
+        if c.value == name:
+            row = c.row
+            break   
+    for c in sheet.range("A1").expand('right'):
+        if c.value == score:
+            column = c.column
+            break
+    print(f"find {name} {score} {row},{column}")
+    return sheet[row,column].value
+
+def shee2MathScore():
+    sheet = wb.sheets['Sheet2']
+    for row in sheet.range('A2').expand('down'):
+        sheet.range(f"C{row.row}").value = shee1MatchNameScore(row.value,sheet[f"C1"].value)
+        sheet.range(f"D{row.row}").value = shee1MatchNameScore(row.value,sheet[f"D1"].value)
 
 data_range = sheet['B2:D10']
 for row in data_range.rows:
@@ -39,6 +75,9 @@ for row in data_range.rows:
 
 
 
+def unitinfo():
+    cell = sheet.range("A2")
+    print(cell)
 
 # 连接到新的 Excel 文件
 # new_wb = xw.Book()
