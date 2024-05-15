@@ -1,48 +1,49 @@
 import xlwings as xw
+from xlwings import Range
 
 
 # [超全整理｜Python 操作 Excel 库 xlwings 常用操作详解！ - 知乎](https://zhuanlan.zhihu.com/p/346813124)
 
-def rangeMatch(range, name):
-    for r in range:
-        if r.value == name:
+def range_find_value(rang: Range, value: str):
+    for r in rang:
+        if r.value == value:
             return r
     return None
 
 
 # 读取原始数据
-def sheet1Sum(name):
+def sheet1_sum(name: str):
     sheet = wb.sheets['Sheet1']
-    findRow = None
+    find_row = None
     for row in sheet.range("A2").expand('down'):
         if row.value == name:
-            findRow = row
+            find_row = row
             break
-    numbers = findRow.offset(0, 1).expand("right")[:3].value
-    sumResult = sum(map(lambda x: x, numbers))
-    return sumResult
+    numbers = find_row.offset(0, 1).expand("right")[:3].value
+    sum_result = sum(map(lambda x: x, numbers))
+    return sum_result
 
 
-def sumAll():
+def sum_all():
     sheet = wb.sheets['Sheet2']
     for row in sheet.range('A2').expand('down'):
-        sheet.range(f"B{row.row}").value = sheet1Sum(row.value)
+        sheet.range(f"B{row.row}").value = sheet1_sum(row.value)
 
 
-def shee1MatchNameScore(name, score):
+def sheet1_match_name_score(name: str, subjects_name: str):
     sheet = wb.sheets['Sheet1']
-    column = rangeMatch(sheet.range("A1").expand('right'), score).column
-    row = rangeMatch(sheet.range("A1").expand('down'), name).row
+    column = range_find_value(sheet.range("A1").expand('right'), subjects_name).column
+    row = range_find_value(sheet.range("A1").expand('down'), name).row
     value = sheet.range(row, column).value
-    print(f"find {name} {score} {row},{column}, {value}")
+    print(f"find {name} {subjects_name} {row},{column}, {value}")
     return value
 
 
-def shee2MathScore():
+def sheet2_math_score():
     sheet = wb.sheets['Sheet2']
     for row in sheet.range('A2').expand('down'):
-        for scroeName in sheet.range(f"C1").expand("right"):
-            sheet.range(row.row, scroeName.column).value = shee1MatchNameScore(row.value, scroeName.value)
+        for subjects_name in sheet.range(f"C1").expand("right"):
+            sheet.range(row.row, subjects_name.column).value = sheet1_match_name_score(row.value, subjects_name.value)
 
 
 # sheet = wb.sheets['Sheet1']
@@ -88,12 +89,11 @@ def shee2MathScore():
 # new_wb.close()
 
 
-
 if __name__ == '__main__':
     # 打开原始 Excel 文件
     app = xw.App(visible=True)
     wb = app.books.open(f"1.xlsx")
-    shee2MathScore()
+    sheet2_math_score()
     # 关闭原始 Excel 文件
     wb.close()
     app.quit()
