@@ -1,16 +1,14 @@
 import xlwings as xw
 
+
 # [超全整理｜Python 操作 Excel 库 xlwings 常用操作详解！ - 知乎](https://zhuanlan.zhihu.com/p/346813124)
 
-def rangeMatch(range,name):
+def rangeMatch(range, name):
     for r in range:
         if r.value == name:
             return r
     return None
 
-# 打开原始 Excel 文件
-app = xw.App(visible=True)
-wb = app.books.open(f"1.xlsx")
 
 # 读取原始数据
 def sheet1Sum(name):
@@ -20,29 +18,31 @@ def sheet1Sum(name):
         if row.value == name:
             findRow = row
             break
-    numbers = findRow.offset(0,1).expand("right")[:3].value
+    numbers = findRow.offset(0, 1).expand("right")[:3].value
     sumResult = sum(map(lambda x: x, numbers))
     return sumResult
-   
+
+
 def sumAll():
     sheet = wb.sheets['Sheet2']
     for row in sheet.range('A2').expand('down'):
         sheet.range(f"B{row.row}").value = sheet1Sum(row.value)
 
 
-def shee1MatchNameScore(name,score):
+def shee1MatchNameScore(name, score):
     sheet = wb.sheets['Sheet1']
-    column = rangeMatch(sheet.range("A1").expand('right'),score).column
+    column = rangeMatch(sheet.range("A1").expand('right'), score).column
     row = rangeMatch(sheet.range("A1").expand('down'), name).row
-    value = sheet.range(row,column).value
+    value = sheet.range(row, column).value
     print(f"find {name} {score} {row},{column}, {value}")
     return value
+
 
 def shee2MathScore():
     sheet = wb.sheets['Sheet2']
     for row in sheet.range('A2').expand('down'):
         for scroeName in sheet.range(f"C1").expand("right"):
-            sheet.range(row.row,scroeName.column).value =  shee1MatchNameScore(row.value,scroeName.value)
+            sheet.range(row.row, scroeName.column).value = shee1MatchNameScore(row.value, scroeName.value)
 
 
 # sheet = wb.sheets['Sheet1']
@@ -72,7 +72,6 @@ def shee2MathScore():
 #         print(cell.value)
 
 
-
 # def unitinfo():
 #     cell = sheet.range("A2")
 #     print(cell)
@@ -88,6 +87,13 @@ def shee2MathScore():
 # new_wb.save('output.xlsx',)
 # new_wb.close()
 
-# 关闭原始 Excel 文件
-wb.close()
-app.quit()
+
+
+if __name__ == '__main__':
+    # 打开原始 Excel 文件
+    app = xw.App(visible=True)
+    wb = app.books.open(f"1.xlsx")
+    shee2MathScore()
+    # 关闭原始 Excel 文件
+    wb.close()
+    app.quit()
