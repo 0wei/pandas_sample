@@ -1,6 +1,8 @@
 import xlwings as xw
 from xlwings import Range
 
+from xlwings_wrap import find_row, range_to_list_range, pick_columns, join_to_address
+
 
 # [超全整理｜Python 操作 Excel 库 xlwings 常用操作详解！ - 知乎](https://zhuanlan.zhihu.com/p/346813124)
 
@@ -32,7 +34,8 @@ def sum_all():
 
 def sheet1_match_name_score(name: str, subjects_name: str):
     sheet = wb.sheets['Sheet1']
-    column = range_find_value(sheet.range("A1").expand('right'), subjects_name).column
+    column = range_find_value(sheet.range(
+        "A1").expand('right'), subjects_name).column
     row = range_find_value(sheet.range("A1").expand('down'), name).row
     value = sheet.range(row, column).value
     print(f"find {name} {subjects_name} {row},{column}, {value}")
@@ -43,7 +46,8 @@ def sheet2_math_score():
     sheet = wb.sheets['Sheet2']
     for row in sheet.range('A2').expand('down'):
         for subjects_name in sheet.range(f"C1").expand("right"):
-            sheet.range(row.row, subjects_name.column).value = sheet1_match_name_score(row.value, subjects_name.value)
+            sheet.range(row.row, subjects_name.column).value = sheet1_match_name_score(
+                row.value, subjects_name.value)
 
 
 # sheet = wb.sheets['Sheet1']
@@ -54,7 +58,7 @@ def sheet2_math_score():
 #     for cell in row:
 #         # 打印单元格的值
 #         sum += float(cell.value)
-#     print(sum)    
+#     print(sum)
 #     sheet.range(f"F{row.row}").value = sum
 
 # row_count = sheet.api.UsedRange.Rows.Count
@@ -87,13 +91,25 @@ def sheet2_math_score():
 # 保存新的 Excel 文件
 # new_wb.save('output.xlsx',)
 # new_wb.close()
+def sum_all_subjects():
+    sheet_2 = wb.sheets['Sheet2']
+    for row_name in sheet_2.range('A2').expand('down'):
+        # list_range = range_to_list_range(wb.sheets['Sheet1'].used_range)
+        list_range = range_to_list_range(wb.sheets['Sheet1'].range("A2:D2").expand('down'))
+        list_range = find_row(list_range, "A", row_name.value)
+        list_range = pick_columns(list_range, "B", "C", "D")
+        # s = sum_list_range(list_range)
+        # sheet_2.range(f"B{row_name.row}").value = f"{s}"
+        address = join_to_address(list_range)
+        sheet_2.range(f"B{row_name.row}").formula = f"=SUM({address})"
 
 
 if __name__ == '__main__':
     # 打开原始 Excel 文件
-    app = xw.App(visible=True)
-    wb = app.books.open(f"1.xlsx")
-    sheet2_math_score()
-    # 关闭原始 Excel 文件
-    wb.close()
-    app.quit()
+    app = xw.App(visible=False, add_book=False)
+    wb = app.books.open(f"1 - 副本.xlsx")
+    sum_all_subjects()
+    # sheet2_math_score()
+    wb.save()  # 保存文件
+    wb.close()  # 关闭文件
+    app.quit()  # 关闭程序
