@@ -1,7 +1,7 @@
 import xlwings as xw
 from xlwings import Range
 
-from xlwings_wrap import find_row, range_to_list_range, pick_columns, join_to_address
+from xlwings_wrap import range_to_list_range, pick_columns, join_to_address, filter_row, find_range_by_value
 
 
 # [超全整理｜Python 操作 Excel 库 xlwings 常用操作详解！ - 知乎](https://zhuanlan.zhihu.com/p/346813124)
@@ -96,7 +96,7 @@ def sum_all_subjects():
     for row_name in sheet_2.range('A2').expand('down'):
         # list_range = range_to_list_range(wb.sheets['Sheet1'].used_range)
         list_range = range_to_list_range(wb.sheets['Sheet1'].range("A2:D2").expand('down'))
-        list_range = find_row(list_range, "A", row_name.value)
+        list_range = filter_row(list_range, "A", row_name.value)
         list_range = pick_columns(list_range, "B", "C", "D")
         # s = sum_list_range(list_range)
         # sheet_2.range(f"B{row_name.row}").value = f"{s}"
@@ -104,12 +104,34 @@ def sum_all_subjects():
         sheet_2.range(f"B{row_name.row}").formula = f"=SUM({address})"
 
 
+def fill_subjects():
+    sheet_1 = wb.sheets['Sheet1']
+    sheet_2 = wb.sheets['Sheet2']
+    for row in sheet_2.range("A2").expand("down"):
+        for cell in sheet_2.range('C1').expand('right'):
+            name = row.value
+            subject_name = cell.value
+            rang = find_range_by_value(sheet_1.range("A1").expand("down"), name)
+            if rang is None:
+                continue
+            name_row = rang.row
+            rang = find_range_by_value(sheet_1.range("A1").expand("right"), subject_name)
+            if rang is None:
+                continue
+            subject_column = rang.column
+            # print(f"{cell.address}")
+            print(f"find {name} {subject_name}")
+            sheet_2.range(row.row,cell.column).formula = f"={sheet_1.range(name_row, subject_column).get_address(include_sheetname=True)}"
+
+
 if __name__ == '__main__':
     # 打开原始 Excel 文件
     app = xw.App(visible=False, add_book=False)
-    wb = app.books.open(f"1 - 副本.xlsx")
+    wb = app.books.open("1.xlsx")
+    fill_subjects()
     sum_all_subjects()
     # sheet2_math_score()
     wb.save()  # 保存文件
     wb.close()  # 关闭文件
     app.quit()  # 关闭程序
+    print("完成!")

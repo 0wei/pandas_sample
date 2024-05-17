@@ -21,23 +21,27 @@ def column_letter_to_index(column_letter: str):
     return column
 
 
-def find_row(list_range: list[list], column_letter: str, value):
-    """
-    查找指定行
-    :param list_range: 目标列表
-    :param column_letter:  查找的列名称, 如 A
-    :param value: 查找列的值
-    :return:
-    """
-    column = column_letter_to_index(column_letter)
-    for row in list_range:
-        for cell in row:
-            if cell.column == column and (value is None or cell.value == value):
-                return row
-    return None
+# def find_row(list_range: list[list], column_letter: str, value):
+#     rows = filter_column(list_range, column_letter, value)
+#     if len(rows)>0:
+#         return rows[0]
+#     return None
+# """
+# 查找指定行
+# :param list_range: 目标列表
+# :param column_letter:  查找的列名称, 如 A
+# :param value: 查找列的值
+# :return:
+# """
+# column = column_letter_to_index(column_letter)
+# for row in list_range:
+#     for cell in row:
+#         if cell.column == column and (value is None or cell.value == value):
+#             return row
+# return None
 
 
-def filter_column(list_range: list[list], column_letter: str, value):
+def filter_row(list_range: list[list], column_letter: str, *values):
     """
     过滤符合的行
     :param list_range: 目标列表
@@ -49,10 +53,18 @@ def filter_column(list_range: list[list], column_letter: str, value):
     column = column_letter_to_index(column_letter)
     for row in list_range:
         for cell in row:
-            if cell.column == column and (cell.value == value):
+            if cell.column == column and (cell.value in values):
                 f.append(row)
                 break
     return f
+
+
+def find_range_by_value(source_range: Range, value):
+    for cell in source_range:
+        if cell.value == value:
+            return cell
+    print(f"No found {source_range.address} {value}")
+    return None
 
 
 def pick_columns(list_range: list[list], *column_letter):
@@ -132,7 +144,7 @@ if __name__ == '__main__':
     print_list_range(used_range)
     # used_range = filter_column(used_range, 'B', 86)
     print_list_range(used_range)
-    used_range = filter_column(used_range, 'A', '李四')
+    used_range = filter_row(used_range, 'A', '李四')
     print_list_range(used_range)
     used_range = pick_columns(used_range, 'B', 'C', 'D')
     print(f"李四: sum:{sum_list_range(used_range)}")
