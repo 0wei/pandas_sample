@@ -65,26 +65,34 @@ def find_range_by_value(source_range: Range, *value):
         if cell.value in value:
             f.append(cell)
     if len(f) > 0:
+        print(f"Find {source_range.address} {value}")
         return f
     print(f"No found {source_range.address} {value}")
     return None
 
 
-def sheet_location(sheet: Sheet, row_list: Range, row_filter_name: list, column_list: Range, column_filter_name: list):
+def sheet_filter_row(row_list: Range, row_filter_values: list):
+    rang_rows = find_range_by_value(row_list, *row_filter_values)
+    return rang_rows
+
+
+def sheet_filter_ranges(sheet: Sheet, row_list: Range, row_filter_values: list, column_list: Range,
+                        column_filter_values: list):
     """
     筛选符合行列的单元格
     :param sheet:
     :param row_list:
-    :param row_filter_name:
+    :param row_filter_values:
     :param column_list:
-    :param column_filter_name:
+    :param column_filter_values:
     :return:
     """
-    rang_rows = find_range_by_value(row_list, *row_filter_name)
+    # sheet = row_list.sheet
+    rang_rows = find_range_by_value(row_list, *row_filter_values)
     if rang_rows is None:
         return None
     # name_row = rang_rows.row
-    rang_columns = find_range_by_value(column_list, *column_filter_name)
+    rang_columns = find_range_by_value(column_list, *column_filter_values)
     if rang_columns is None:
         return None
     # subject_column = rang_rows.column
@@ -93,7 +101,32 @@ def sheet_location(sheet: Sheet, row_list: Range, row_filter_name: list, column_
         for column in rang_columns:
             f.append(sheet.range(row.row, column.column))
     if len(f) > 0:
+        print(f"Find location {"".join([x.address for x in f])} row:{row_filter_values} column:{column_filter_values}")
         return f
+    print(f"Not Find location row:{row_filter_values} column:{column_filter_values}")
+
+    return None
+
+
+def sheet_filter_column(row_list: list[list], columns: list):
+    """
+    筛选需要的列
+    :param row_list:
+    :param columns:
+    :return:
+    """
+    f = []
+    for row in row_list:
+        r = []
+        row_0 = row[0]
+        sheet = row_0.sheet
+        for c in columns:
+            r.append(sheet.range(f"{c}{row_0.row}"))
+        f.append(r)
+    if len(f) > 0:
+        # print(f"Find location {"".join([x for x in f])}")
+        return f
+    print(f"Not Find location column")
     return None
 
 
@@ -170,15 +203,13 @@ if __name__ == '__main__':
     wb = app.books.open(f"1.xlsx")
     sheet_1 = wb.sheets['Sheet1']
     used_range = [row for row in sheet_1.used_range.rows]
-
-    print_list_range(used_range)
-    # used_range = filter_column(used_range, 'B', 86)
-    print_list_range(used_range)
-    used_range = filter_row(used_range, 'A', '李四')
-    print_list_range(used_range)
-    used_range = pick_columns(used_range, 'B', 'C', 'D')
-    print(f"李四: sum:{sum_list_range(used_range)}")
-
+    # print_list_range(used_range)
+    # # used_range = filter_column(used_range, 'B', 86)
+    # print_list_range(used_range)
+    # used_range = filter_row(used_range, 'A', '李四')
+    # print_list_range(used_range)
+    # used_range = pick_columns(used_range, 'B', 'C', 'D')
+    # print(f"李四: sum:{sum_list_range(used_range)}")
     # 关闭原始 Excel 文件
     wb.close()
     app.quit()
