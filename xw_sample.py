@@ -1,7 +1,8 @@
 import xlwings as xw
 from xlwings import Range
 
-from xlwings_wrap import range_to_list_range, pick_columns, join_to_address, filter_row, find_range_by_value
+from xlwings_wrap import range_to_list_range, pick_columns, join_to_address, filter_row, find_range_by_value, \
+    sheet_location
 
 
 # [超全整理｜Python 操作 Excel 库 xlwings 常用操作详解！ - 知乎](https://zhuanlan.zhihu.com/p/346813124)
@@ -111,17 +112,25 @@ def fill_subjects():
         for cell in sheet_2.range('C1').expand('right'):
             name = row.value
             subject_name = cell.value
-            rang = find_range_by_value(sheet_1.range("A1").expand("down"), name)
-            if rang is None:
+            # rang = find_range_by_value(sheet_1.range("A1").expand("down"), name)
+            # if rang is None:
+            #     continue
+            # name_row = rang.row
+            # rang = find_range_by_value(sheet_1.range("A1").expand("right"), subject_name)
+            # if rang is None:
+            #     continue
+            # subject_column = rang.column
+            # # print(f"{cell.address}")
+            # print(f"find {name} {subject_name}")
+            # sheet_2.range(row.row,
+            # cell.column).formula = f"={sheet_1.range(name_row, subject_column).get_address(include_sheetname=True)}"
+            location = sheet_location(sheet_1,
+                                      sheet_1.range("A1").expand("down"), [name],
+                                      sheet_1.range("A1").expand("right"), [subject_name])
+            if location is None:
                 continue
-            name_row = rang.row
-            rang = find_range_by_value(sheet_1.range("A1").expand("right"), subject_name)
-            if rang is None:
-                continue
-            subject_column = rang.column
-            # print(f"{cell.address}")
-            print(f"find {name} {subject_name}")
-            sheet_2.range(row.row,cell.column).formula = f"={sheet_1.range(name_row, subject_column).get_address(include_sheetname=True)}"
+            sheet_2.range(row.row,
+                          cell.column).formula = f"={location[0].get_address(include_sheetname=True)}"
 
 
 if __name__ == '__main__':

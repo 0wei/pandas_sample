@@ -1,7 +1,7 @@
 import string
 
 import xlwings as xw
-from xlwings import Range
+from xlwings import Range, Sheet
 
 
 def print_list_range(list_range: list[list]):
@@ -59,11 +59,41 @@ def filter_row(list_range: list[list], column_letter: str, *values):
     return f
 
 
-def find_range_by_value(source_range: Range, value):
+def find_range_by_value(source_range: Range, *value):
+    f = []
     for cell in source_range:
-        if cell.value == value:
-            return cell
+        if cell.value in value:
+            f.append(cell)
+    if len(f) > 0:
+        return f
     print(f"No found {source_range.address} {value}")
+    return None
+
+
+def sheet_location(sheet: Sheet, row_list: Range, row_filter_name: list, column_list: Range, column_filter_name: list):
+    """
+    筛选符合行列的单元格
+    :param sheet:
+    :param row_list:
+    :param row_filter_name:
+    :param column_list:
+    :param column_filter_name:
+    :return:
+    """
+    rang_rows = find_range_by_value(row_list, *row_filter_name)
+    if rang_rows is None:
+        return None
+    # name_row = rang_rows.row
+    rang_columns = find_range_by_value(column_list, *column_filter_name)
+    if rang_columns is None:
+        return None
+    # subject_column = rang_rows.column
+    f = []
+    for row in rang_rows:
+        for column in rang_columns:
+            f.append(sheet.range(row.row, column.column))
+    if len(f) > 0:
+        return f
     return None
 
 
