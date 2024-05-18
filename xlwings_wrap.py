@@ -13,7 +13,7 @@ def print_list_range(list_range: list[list]):
     print('----------')
 
 
-def column_letter_to_index(column_letter: str):
+def _column_letter_to_index(column_letter: str):
     column = 0
     for letter in column_letter.upper():
         column *= 26
@@ -41,7 +41,7 @@ def column_letter_to_index(column_letter: str):
 # return None
 
 
-def filter_row(list_range: list[list], column_letter: str, *values):
+def list_range_filter_row(list_range: list[list], column_letter: str, *values):
     """
     过滤符合的行
     :param list_range: 目标列表
@@ -50,13 +50,18 @@ def filter_row(list_range: list[list], column_letter: str, *values):
     :return:
     """
     f = []
-    column = column_letter_to_index(column_letter)
+    column = _column_letter_to_index(column_letter)
     for row in list_range:
         for cell in row:
             if cell.column == column and (cell.value in values):
                 f.append(row)
                 break
     return f
+
+
+def range_filter_row(row_list: Range, row_filter_values: list):
+    rang_rows = find_range_by_value(row_list, *row_filter_values)
+    return rang_rows
 
 
 def find_range_by_value(source_range: Range, *value):
@@ -71,31 +76,24 @@ def find_range_by_value(source_range: Range, *value):
     return None
 
 
-def sheet_filter_row(row_list: Range, row_filter_values: list):
-    rang_rows = find_range_by_value(row_list, *row_filter_values)
-    return rang_rows
-
-
-def sheet_filter_ranges(sheet: Sheet, row_list: Range, row_filter_values: list, column_list: Range,
-                        column_filter_values: list):
+def sheet_filter_ranges_row_column(sheet: Sheet, row_list: Range, row_filter_values: list, column_list: Range,
+                                   column_filter_values: list):
     """
     筛选符合行列的单元格
     :param sheet:
-    :param row_list:
-    :param row_filter_values:
-    :param column_list:
-    :param column_filter_values:
+    :param row_list: 过滤的行
+    :param row_filter_values: 匹配的行名称
+    :param column_list: 过滤的列
+    :param column_filter_values: 匹配的列名称
     :return:
     """
     # sheet = row_list.sheet
     rang_rows = find_range_by_value(row_list, *row_filter_values)
     if rang_rows is None:
         return None
-    # name_row = rang_rows.row
     rang_columns = find_range_by_value(column_list, *column_filter_values)
     if rang_columns is None:
         return None
-    # subject_column = rang_rows.column
     f = []
     for row in rang_rows:
         for column in rang_columns:
@@ -108,7 +106,7 @@ def sheet_filter_ranges(sheet: Sheet, row_list: Range, row_filter_values: list, 
     return None
 
 
-def sheet_filter_column(row_list: list[list], columns: list):
+def list_range_filter_column(row_list: list[list], columns: list):
     """
     筛选需要的列
     :param row_list:
@@ -130,26 +128,26 @@ def sheet_filter_column(row_list: list[list], columns: list):
     return None
 
 
-def pick_columns(list_range: list[list], *column_letter):
-    """
-    筛选需要的列
-    :param list_range:  目标列表
-    :param column_letter: 列名称
-    :return:
-    """
-    columns = list(map(lambda letter: column_letter_to_index(letter), column_letter))
-    # column = column_letter_to_index(column_letter)
-    # return map(lambda row: filter(lambda cell: cell.column in columns, row), list_range)
-    f = []
-    # column = column_letter_to_index(column_letter)
-    for row in list_range:
-        filter_row = []
-        for cell in row:
-            if cell.column in columns:
-                filter_row.append(cell)
-        if len(filter_row) > 0:
-            f.append(filter_row)
-    return f
+# def list_range_pick_columns(list_range: list[list], *column_letter):
+#     """
+#     筛选需要的列
+#     :param list_range:  目标列表
+#     :param column_letter: 列名称
+#     :return:
+#     """
+#     columns = list(map(lambda letter: column_letter_to_index(letter), column_letter))
+#     # column = column_letter_to_index(column_letter)
+#     # return map(lambda row: filter(lambda cell: cell.column in columns, row), list_range)
+#     f = []
+#     # column = column_letter_to_index(column_letter)
+#     for row in list_range:
+#         filter_row = []
+#         for cell in row:
+#             if cell.column in columns:
+#                 filter_row.append(cell)
+#         if len(filter_row) > 0:
+#             f.append(filter_row)
+#     return f
 
 
 def unfold_list_range(list_range: list[list]):
@@ -175,7 +173,7 @@ def range_to_list_range(rang: Range):
     return [row for row in rang.rows]
 
 
-def sum_list_range(list_range: list[list]):
+def list_range_sum_list_range(list_range: list[list]):
     """
     求目标列表的总和
     :param list_range:
@@ -192,7 +190,7 @@ def sum_list_range(list_range: list[list]):
     return sum(map(cell_value_to_float, unfold_list_range(list_range)))
 
 
-def join_to_address(list_range: list[list]):
+def list_range_join_to_address(list_range: list[list]):
     address = [cell.get_address(include_sheetname=True) for cell in unfold_list_range(list_range)]
     return ", ".join(address)
 

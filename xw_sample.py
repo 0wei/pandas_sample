@@ -1,7 +1,8 @@
 import xlwings as xw
 from xlwings import Range
 
-from xlwings_wrap import join_to_address, sheet_filter_ranges, sheet_filter_row, sheet_filter_column
+from xlwings_wrap import list_range_join_to_address, sheet_filter_ranges_row_column, range_filter_row, \
+    list_range_filter_column
 
 
 # [超全整理｜Python 操作 Excel 库 xlwings 常用操作详解！ - 知乎](https://zhuanlan.zhihu.com/p/346813124)
@@ -37,17 +38,27 @@ def sheet1_match_name_score(name: str, subjects_name: str):
     column = range_find_value(sheet.range(
         "A1").expand('right'), subjects_name).column
     row = range_find_value(sheet.range("A1").expand('down'), name).row
-    value = sheet.range(row, column).value
-    print(f"find {name} {subjects_name} {row},{column}, {value}")
-    return value
+    cell = sheet.range(row, column)
+    print(f"find {name} {subjects_name} {row},{column},{cell.address}, {cell.value}")
+    return cell
 
 
 def sheet2_math_score():
     sheet = wb.sheets['Sheet2']
     for row in sheet.range('A2').expand('down'):
         for subjects_name in sheet.range(f"C1").expand("right"):
-            sheet.range(row.row, subjects_name.column).value = sheet1_match_name_score(
-                row.value, subjects_name.value)
+            sheet.range(row.row, subjects_name.column).formula = \
+                f"={sheet1_match_name_score(
+                    row.value, subjects_name.value).get_address(include_sheetname=True)}"
+
+
+def subjects_sum():
+    sheet = wb.sheets['Sheet2']
+    for name_row in sheet.range('A2').expand('down'):
+        for sum_raw in wb.sheets['Sheet1'].range('A2').expand('down'):
+            # sum(range_find_value(wb.sheets['Sheet1'].range('A2').expand('right'),sum_raw.value).expand('right')[:3].value)
+            sheet.range(name_row.row,
+                        sum_raw.column).formula = f"=sum({range_find_value(sum_raw, name_row.value).expand('right')[:3].get_address(include_sheetname=True)})"
 
 
 # sheet = wb.sheets['Sheet1']
@@ -91,51 +102,36 @@ def sheet2_math_score():
 # 保存新的 Excel 文件
 # new_wb.save('output.xlsx',)
 # new_wb.close()
-def sum_all_subjects():
+def sum_subjects():
     sheet_1 = wb.sheets['Sheet1']
     sheet_2 = wb.sheets['Sheet2']
     for row_name in sheet_2.range('A2').expand('down'):
-        location = sheet_filter_row(sheet_1.range("A1").expand("down"), [row_name.value])
-        location = sheet_filter_column(location, ["B", "C", "D"])
+        list_range = range_filter_row(sheet_1.range("A1").expand("down"), [row_name.value])
+        list_range = list_range_filter_column(list_range, ["B", "C", "D"])
         # list_range = range_to_list_range(sheet_1.range("A2:D2").expand('down'))
         # list_range = filter_row(list_range, "A", row_name.value)
         # list_range = pick_columns(list_range, "B", "C", "D")
         # s = sum_list_range(list_range)
         # sheet_2.range(f"B{row_name.row}").value = f"{s}"
         # address = join_to_address(list_range)
-        address = join_to_address(location)
+        address = list_range_join_to_address(list_range)
         sheet_2.range(f"B{row_name.row}").formula = f"=SUM({address})"
 
 
-# def match_cell(rows, columns, source_rows, match_rows, sour_columns, match_columns):
-#     for r_cell in rows.rows:
-#         location_row = r_cell.row
-#         for c_cell in columns:
-#             location_column = c_cell.column
-#             location = sheet_location(source_rows.sheet,
-#                                       source_rows, [match_rows],
-#                                       sour_columns, [match_columns])
-#             if location is None:
-#                 continue
-#             rows.sheet.range(location_row, location_column) \
-#                 .formula = f"={location[0].get_address(include_sheetname=True)}"
-
-
-def fill_subjects():
+def fill_match_subjects():
     sheet_1 = wb.sheets['Sheet1']
     sheet_2 = wb.sheets['Sheet2']
-
     for cell_title in sheet_2.range('C1').expand('right'):
         for cell_name in sheet_2.range("A2").expand("down"):
             name = cell_name.value
             subject_name = cell_title.value
-            location = sheet_filter_ranges(sheet_1,
-                                           sheet_1.range("A1").expand("down"), [name],
-                                           sheet_1.range("A1").expand("right"), [subject_name])
+            location = sheet_filter_ranges_row_column(sheet_1,
+                                                      sheet_1.range("A1").expand("down"), [name],
+                                                      sheet_1.range("A1").expand("right"), [subject_name])
             if location is None:
                 continue
-            sheet_2.range(cell_name.row, cell_title.column) \
-                .formula = f"={location[0].get_address(include_sheetname=True)}"
+            address = location[0].get_address(include_sheetname=True)
+            sheet_2.range(cell_name.row, cell_title.column).formula = f"={address}"
 
 
 if __name__ == '__main__':
@@ -143,7 +139,7 @@ if __name__ == '__main__':
     app = xw.App(visible=True, add_book=False)
     wb = app.books.open("1.xlsx")
     # fill_subjects()
-    sum_all_subjects()
+    sum_subjects()
     # sheet2_math_score()
     wb.save()  # 保存文件
     wb.close()  # 关闭文件
